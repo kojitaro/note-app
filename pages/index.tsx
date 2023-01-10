@@ -10,7 +10,7 @@ export default function Home() {
   
   useEffect(() => {
     axios
-      .get('http://localhost:1337/api/notes')
+      .get(process.env.NEXT_PUBLIC_API_BASE_URL + '/api/notes')
       .then(response => {
         setNotes(response.data.data);
       })
