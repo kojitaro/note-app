@@ -5,8 +5,8 @@ import moment from 'moment'
 import { useEffect, useState } from 'react';
 
 export default function Home() {
-  const [error, setError] = useState(null);
-  const [notes, setNotes] = useState([]);
+  const [error, setError] = useState<any>(null);
+  const [notes, setNotes] = useState<any>([]);
   
   useEffect(() => {
     axios
@@ -24,7 +24,7 @@ export default function Home() {
 
   return (
     <div>
-      {notes.map((note, index) => {
+      {notes.map((note:any) => {
         return (
         <div key={note.id} className="p-2">
           <p className=''>{moment(note.attributes.publishedAt).format('YYYY年M月D日 H:m')}</p>
