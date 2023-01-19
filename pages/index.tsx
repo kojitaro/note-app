@@ -10,9 +10,32 @@ export default function Home() {
   
   useEffect(() => {
     axios
-      .get(process.env.NEXT_PUBLIC_API_BASE_URL + '/api/notes')
+      // .get(process.env.NEXT_PUBLIC_API_BASE_URL + '/api/notes')
+      .post(process.env.NEXT_PUBLIC_API_BASE_URL + '/graphql',{
+        query: `
+        query{
+          notes(sort: "publishedAt:desc"){
+            data{
+              id,
+              attributes{
+                url, site_title, site_image, site_description, note, publishedAt
+              }
+            }
+            meta {
+              pagination {
+                page
+                pageSize
+                total
+                pageCount
+              }
+            }
+          }
+        }
+    `,
+      } )
       .then(response => {
-        setNotes(response.data.data);
+        // console.log(response.data.data.notes.data);
+        setNotes(response.data.data.notes.data);
       })
       .catch((error) => setError(error))
   }, [])
@@ -31,7 +54,7 @@ export default function Home() {
           <div className=''>{note.attributes.note}</div>
           
             <div className='flex border border-inherit'>
-              <div className='p-3'>
+              <div className='p-3 shrink-0'>
                 <Link href={note.attributes.url} target='_blank' rel="noopener noreferrer">
                   <img src={note.attributes.site_image} className='object-cover w-[8rem] h-[8rem]'></img>
                   </Link>
