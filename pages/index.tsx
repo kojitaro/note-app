@@ -1,20 +1,39 @@
 import Link from 'next/link';
+import Header from '../components/header'
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router'
 
 import axios from 'axios';
 import moment from 'moment'
-import { useEffect, useState } from 'react';
+
 
 export default function Home() {
-  const [error, setError] = useState<any>(null);
+  const router = useRouter();
+
+  const [error, setError] = useState<any>('');
   const [notes, setNotes] = useState<any>([]);
-  
-  useEffect(() => {
+
+  let fetchKeyword:string|null = null;
+  function fetchNotes(keyword:string)
+  {
+    if( keyword === fetchKeyword ){
+      return;
+    }
+    fetchKeyword = keyword;
     axios
-      // .get(process.env.NEXT_PUBLIC_API_BASE_URL + '/api/notes')
       .post(process.env.NEXT_PUBLIC_API_BASE_URL + '/graphql',{
         query: `
-        query{
-          notes(sort: "publishedAt:desc"){
+        query($searchQuery: String!){
+          notes(
+            sort: "publishedAt:desc",
+            filters: {
+              or: [
+                {note: {contains: $searchQuery} },
+                {site_title: {contains: $searchQuery} },
+                {site_description: {contains: $searchQuery} },
+            ]}
+        ){
             data{
               id,
               attributes{
@@ -32,13 +51,30 @@ export default function Home() {
           }
         }
     `,
+    variables: {searchQuery: keyword}
       } )
       .then(response => {
-        // console.log(response.data.data.notes.data);
         setNotes(response.data.data.notes.data);
       })
-      .catch((error) => setError(error))
-  }, [])
+      .catch((error) => setError(error));
+  }
+
+  useEffect(() => {
+    console.log('useEffect router.isReady='+router.isReady);
+    if(!router.isReady){
+      return;
+    }
+
+    let keyword = '';
+    if( router.query.keyword ){
+      if( Array.isArray(router.query.keyword)){
+        keyword = router.query.keyword[0] as string;
+      }else{
+        keyword = router.query.keyword as string;
+      }
+    }
+    fetchNotes(keyword);
+  }, [router.query])
   
   if (error) {
     // Print errors if any
@@ -47,6 +83,8 @@ export default function Home() {
 
   return (
     <div>
+      <Header/>
+
       {notes.map((note:any) => {
         return (
         <div key={note.id} className="p-2">
